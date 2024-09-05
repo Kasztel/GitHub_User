@@ -17,8 +17,15 @@ public class RequestMaker {
 
         HttpClient httpClient = HttpClient.newHttpClient();
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        
+        if (response.statusCode() == 200) {
+            return response.body();
+        } else if (response.statusCode() == 404) {
+            System.out.println("User not found!");
+        } else {
+            System.out.println("Error: " + response.statusCode());
+        }
 
-        return response.body();
-
+        return null;
     }
 }

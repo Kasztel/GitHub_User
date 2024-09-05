@@ -12,6 +12,11 @@ public class Main {
         String response = RequestMaker.getRequest("https://api.github.com/users/"+username+"/repos",
                 "Accept", "application/json", "Authorization", dotenv.get("AUTH_TOKEN"));
 
+
+        if (response == null) {
+            return;
+        }
+
         JSONArray jsonArray = new JSONArray(response);
 
         if (jsonArray.isEmpty()) {
@@ -19,7 +24,7 @@ public class Main {
         }
 
         int numberOfNonForkRepos = 0;
-
+        System.out.println("Those are non-fork repositories:");
         for (int i = 0; i < jsonArray.length(); i++) {
             JSONObject repository = jsonArray.getJSONObject(i);
             if(repository.getBoolean("fork")) {
