@@ -1,30 +1,36 @@
 package org.example;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 import io.github.cdimascio.dotenv.Dotenv;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter username of programmist: ");
-        String username = scanner.nextLine();
-
         Dotenv dotenv = Dotenv.load();
 
+        String username = InputHandler.getUsername();
+        String response = RequestMaker.getRequest("https://api.github.com/users/"+username+"/repos",
+                "Accept", "application/json", "Authorization", dotenv.get("AUTH_TOKEN"));
 
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(new URI("https://api.github.com/users/" + username + "/repos"))
-                .header("Accept", "application/json")
-                .header("Authorization", dotenv.get("AUTH_TOKEN"))
-                .GET()
-                .build();
-        HttpClient httpClient = HttpClient.newHttpClient();
+        JSONArray jsonArray = new JSONArray(response);
 
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        if (jsonArray.isEmpty()) {
+            System.out.println("Empty response");
+        }
 
-        System.out.println(response.body());
+        int numberOfNonForkRepos = 0;
+
+        for (int i = 0; i < jsonArray.length(); i++) {
+            JSONObject repository = jsonArray.getJSONObject(i);
+            if(repository.getBoolean("fork")) {
+                continue;
+            }
+            System.out.println(repository.getString("name"));
+            numberOfNonForkRepos++;
+        }
+
+        if (numberOfNonForkRepos == 0) {
+            System.out.println("Only fork repositories");
+        }
     }
 }
